@@ -1,0 +1,87 @@
+[app] (dep: Repositories, Server, Database)
+ - [*domain] App Services (1 file per action, 1 folder per domain)
+ - [*requests] Transformers (1 file per request Transformer per domain)
+ - index for bootstrapping (Configure services)
+
+[domain] (dep: Repositories)
+ - [*domain] Entities (1 file per entity, 1 folder per domain)
+ - index default exporting
+
+contracts
+ - DTO
+ - service interfaces
+
+[infrastructure]
+ - database
+  . [*domain] DB Models (1 file per entity)
+  . hooks (1 file per DB hook)
+  . [*models] repositories (sub folder, 1 file per model)
+  . [*models+*changes] migrations (sub folder, 1 file per model per change)
+  . index default exporting + DB init
+
+ - security
+  . JWT parser/composer
+  . encryption
+
+ - monitoring
+   . logging
+
+ - response
+
+[interfaces]
+ - http
+ - console
+
+
+[dependencies]
+ - main
+  . typescript
+  . awilix         or inversify
+  . awilix-express or inversify
+  . bcrypt
+  . body-parser
+  . compression
+  . cors
+  . cross-env
+  . dotenv
+  . express
+  . express-status-monitor
+  . faker
+  . http-status
+  . jsonwebtoken
+  . moment
+  . moment-timezone
+  . morgan
+  . nodemon
+  . passport
+  . passport-jwt
+  . pg
+  . pg-hstore
+  . pm2
+  . lodash
+  . typeORM
+  . swagger-jsdoc
+  . uuid
+  . winston
+
+ - dev
+  . babel-eslint
+  . chai
+  . codecrumbs
+  . commitizen
+  . coveralls
+  . cz-conventional-changelog
+  . istanbul
+  . lint-staged
+  . mocha
+  . mocha-lcov-reporter
+  . npm-check
+  . pre-commit
+  . semantic-release
+  . sequelize-cli
+  . sinon
+  . sinon-chai
+  . snazzy
+  . standard
+  . supertest
+  . travis-deploy-once

@@ -1,0 +1,6 @@
+.vs
+.vscode
+*.pyc
+*.pyo
+*/data
+*/store
