@@ -2,18 +2,23 @@ import math
 
 from lib import io_manager, data_manager, model_manager, db_manager
 from entities.domain import lstm_model
+from jobs import tasker as cltsk
 
+tasker = cltsk(['actions.create_fit_model'])
+
+@tasker.clapp.task
 def create_fit_model(ticker, features, tech_features, rolling_window, training_data_size, sequence_size, output_sequence_size, edge_layer_units, layers, batch_size, epochs, input_dropout, recurrent_dropout, stateful, _data, _description):
     io = io_manager()
     dpp = data_manager()
     mm = model_manager()
 
     io_manager.throw_if_except(ticker, sequence_size, edge_layer_units, layers, epochs, _data, _description)
-    print('stateful', str(stateful))
+
     config = io.configuration
     session_id = io.session_id
     out_to = io.output
-    logger = io.load_logging()
+    
+    io.load_logging()
 
     optimizer, loss = io.load_network_definition()
     scaling_name = io.load_data_scaling_type()

@@ -1,30 +1,32 @@
 import sys
-from lib import db_manager
-from entities.domain import lstm_model
 
-dbconn = db_manager(
-    host="127.0.0.1",
-    port=27017,
-    auth_source="admin",
-    user="localadmin",
-    pwd="Ysg52_sKia",
-    dbname="seersaistore"
-)
+import zerorpc
 
-dbconn.connectdb()
+from lib import io_manager
+from interface.mq import zero_router
 
-model = lstm_model(
-    model_id="12345",
-    parameters={'key': 'value'},
-    training_data_length=1000,
-    features=['f1','f2'],
-    model="binary data as string",
-    description="",
-    scalers="binary data as string"
-)
+from jobs import worker
 
-model.save()
+cw = None
 
-dbconn.disconnectdb()
+def main():
+    io = io_manager(do_init=False)
 
-print('success, check db')
+    io.load_config(config_file_path='config.ini')
+
+    protocol, host, port, name = io.load_zmq_config()
+
+    server = zerorpc.Server(zero_router(), name=name)
+    server.bind(':'.join(['://'.join([str(protocol), str(host)]), str(port)]))
+    cw = worker()
+    server.run()
+
+if __name__ == "__main__":
+    try:
+        main()
+    except Exception as ex:
+        io_manager.out(ex, is_exception=True, exception_info=sys.exc_info())
+        if cw is not None:
+            cw.terminate()
+    
+    sys.exit()

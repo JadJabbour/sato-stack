@@ -12,7 +12,7 @@ from json_tricks import dumps as json_dump
 import matplotlib.pyplot as plt
 
 class io_manager(object):
-    def __init__(self, session_id=None, output="store", config_file_path="config.ini", do_init=True):
+    def __init__(self, session_id=None, output="logs", config_file_path="config.ini", do_init=True):
         if(do_init):
             self.session_id = session_id if session_id is not None else io_manager.generate_session_id()
             self.output = self.prepare_output_folder(output, session_id)
@@ -22,12 +22,12 @@ class io_manager(object):
         if(not os.path.isdir(parent_folder)):
             os.mkdir(parent_folder)
 
-        out_dir = parent_folder+"/"+self.session_id
+        out_dir = "/".join([parent_folder, self.session_id])
         if(not os.path.isdir(out_dir)):
             os.mkdir(out_dir)
 
         if(inc_session_id is not None):
-            out_dir = out_dir + "/" + datetime.datetime.utcnow().strftime(format='%c').replace(':', '-').replace(' ', '-')
+            out_dir = "/".join([out_dir, datetime.datetime.utcnow().strftime(format='%c').replace(':', '-').replace(' ', '-')])
             os.mkdir(out_dir)
 
         return out_dir
@@ -40,6 +40,28 @@ class io_manager(object):
         self.configuration.read(config_file_path)
         return self.configuration
 
+    def load_console_config(self):
+        if 'CONSOLE' in self.configuration:
+            description = self.configuration['CONSOLE']['description']
+            name = self.configuration['CONSOLE']['name']
+            return name, description
+        else:
+            raise Exception('Missing CONSOLE section from config file')
+
+    def load_celery_config(self):
+        if 'CELERY' in self.configuration:
+            training_worker = self.configuration['CELERY']['training_worker']
+            inference_worker = self.configuration['CELERY']['inference_worker']
+            training_worker_name = self.configuration['CELERY']['training_worker_name']
+            inference_worker_name = self.configuration['CELERY']['inference_worker_name']
+            broker = self.configuration['CELERY']['broker']
+            command = self.configuration['CELERY']['command']
+            working_dir = self.configuration['CELERY']['working_dir']
+            daemonize = self.configuration['CELERY']['daemonize']
+            return training_worker, inference_worker, training_worker_name, inference_worker_name, broker, command, working_dir, daemonize
+        else:
+            raise Exception('Missing CELERY section from config file')
+
     def load_db_config(self):
         if 'MONGODB' in self.configuration:
             host = self.configuration['MONGODB']['host']
@@ -50,14 +72,24 @@ class io_manager(object):
             dbname = self.configuration['MONGODB']['dbname']
             return host, port, auth_source, user, password, dbname
         else:
-            raise Exception('Missing LOGGING section from config file')
+            raise Exception('Missing MONGODB section from config file')
+
+    def load_zmq_config(self):
+        if 'ZMQ' in self.configuration:
+            protocol = self.configuration['ZMQ']['protocol']
+            host = self.configuration['ZMQ']['host']
+            port = self.configuration['ZMQ']['port']
+            name = self.configuration['ZMQ']['name']
+            return protocol, host, port, name
+        else:
+            raise Exception('Missing ZMQ section from config file')
 
     def load_logging(self):
         if 'LOGGING' in self.configuration:
             log_file = self.configuration['LOGGING']['filename']
             logging.basicConfig(
                 level = logging._nameToLevel[self.configuration['LOGGING']['level'].upper()],
-                filename = self.output+'/'+log_file,
+                filename = '/'.join([self.output, log_file]),
                 filemode = 'w',
                 format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
             )
@@ -81,7 +113,6 @@ class io_manager(object):
 
     def load_plot_definition(self):
         config = self.configuration
-
         if 'PLOT_STYLE' in config:
             plot_style = config['PLOT_STYLE']['plot_style']
             plot_title = config['PLOT_STYLE']['plot_title']
@@ -112,7 +143,7 @@ class io_manager(object):
         plt.xlabel(xlabel, fontsize=18)
         plt.ylabel(ylabel, fontsize=18)
         plt.legend(legend, loc='lower right')
-        plt.savefig(fname=self.output+"/"+figfname+"."+figformat, dpi=dpi, format=figformat)
+        plt.savefig(fname=".".join(["/".join([self.output, figfname]), figformat]), dpi=dpi, format=figformat)
         if show:
             plt.show()
             
@@ -125,19 +156,19 @@ class io_manager(object):
                 exception_atline = "N/A" if exception_info == "" else exception_info[2].tb_lineno
                 transport = sys.stderr
                 logger = logging.error if logger is not None else None
-                exception_heading = "\n<ERROR>" + exception_type + "</ERROR>\n"
-                content = (content if isinstance(content, str) else json_dump(content.args) + ' \n') + io_manager.format_exception(content)
+                exception_heading = exception_type.join(["\n<ERROR>", "</ERROR>\n"])
+                content = "".join([(content if isinstance(content, str) else "".join([json_dump(content.args), '\n'])), io_manager.format_exception()])
                 io_manager.print(exception_heading, transport, logger)
-                io_manager.print("@" + exception_atfile + ":" + str(exception_atline) + "\n", transport, logger)
-            io_manager.print(content, transport, logger)
+                io_manager.print(":".join([exception_atfile, str(exception_atline)]).join(["@", "\n"]), transport, logger)
+            io_manager.print(json_dump(content), transport, logger)
         except Exception as ex:
             exception_type = sys.exc_info()[0].__name__
             exception_atfile = sys.exc_info()[2].tb_frame.f_code.co_filename
             exception_atline = sys.exc_info()[2].tb_lineno
-            sys.stderr.write("\n<ERROR>" + exception_type + " (@output)</ERROR>\n@" + exception_atfile + ":" + str(exception_atline) + "\n" + io_manager.format_exception(ex))
+            sys.stderr.write("".join([exception_type.join(["\n<ERROR>", " (@output)</ERROR>\n@"]), "\n".join([":".join([exception_atfile, str(exception_atline)]), io_manager.format_exception()])]))
             sys.exit(1)
 
-    def format_exception(e):
+    def format_exception():
         exception_list = traceback.format_stack()
         exception_list = exception_list[:-2]
         exception_list.extend(traceback.format_tb(sys.exc_info()[2]))

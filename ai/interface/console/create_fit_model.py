@@ -1,6 +1,5 @@
-from actions import create_fit_model as cfm
-
 def create_fit_model(args):
+    from actions import create_fit_model as cfm
     return cfm(
         ticker=args.ticker if args.ticker else Exception('Missing ticker symbol'),
         features=args.features.split(',') if args.features else ['Open', 'High', 'Low', 'Close'], 

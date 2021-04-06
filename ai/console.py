@@ -1,11 +1,15 @@
 import sys
 
-from json_tricks import dumps
-
-import interface
 from lib import io_manager
+from interface import console
 ##  should add try catch to actions and raise proper exceptions
 def run():
+    io = io_manager(do_init=False)
+
+    io.load_config(config_file_path='config.ini')
+
+    name, description = io.load_console_config()
+    ##  should find a way to move these to config (casting as type for last field?)
     args_def = [
         ('-a', '--action', 'The Seers.ai.actions to run', str),
         ('-mid', '--model_id', 'The Seers.ai.lstm_model`s id', str),
@@ -29,14 +33,11 @@ def run():
         ('-d', '--data', 'The json representation of the ohlcv time series dataset for training as string or filepath', str),
     ]
 
-    args = io_manager.parse_args('Seers.ai.console', 'Console interface for Seers.ai', args_def)
+    args = io_manager.parse_args(name, description, args_def)
 
     if args.action is not None and not args.action == "": 
         io_manager.out(
-            dumps(
-                getattr(interface.console, args.action)(args)
-            ), 
-            logger=None
+            getattr(console, args.action)(args)
         )
     else:
         raise Exception("No action was specified")
@@ -45,6 +46,6 @@ if __name__ == "__main__":
     try:
         run()
     except Exception as ex:
-        io_manager.out(ex, is_exception=True, exception_info=sys.exc_info(), logger=None)
+        io_manager.out(ex, is_exception=True, exception_info=sys.exc_info())
     
     sys.exit()

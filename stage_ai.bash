@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 
+cd ai && \
 
 ## Staging fresh model and fitting
 
-cd ai && python -m pipenv run python -m console \
+python -m pipenv run python -m console \
 -a create_fit_model \
 -desc 'a model for predicting trx-usd price fluctuations' \
 -t TRX-USD \
@@ -15,7 +16,7 @@ cd ai && python -m pipenv run python -m console \
 
 ## Staging model loading and reffitting
 
-# cd ai && python -m pipenv run python -m console \
+# python -m pipenv run python -m console \
 # -a refit_model \
 # -mid 4fe3140991d911eb8ec58c6ded4ce976 \
 # -e 20 \

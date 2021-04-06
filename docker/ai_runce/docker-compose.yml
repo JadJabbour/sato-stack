@@ -1,0 +1,21 @@
+version: '3.6'
+services:
+  ai:
+    build: ./ai
+    volumes:
+      - ./ai:/ai
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+    depends_on:
+      - mongo
+    command: python -m pipenv run python -m console -a create_fit_model -desc 'a model for predicting trx-usd price fluctuations' -t TRX-USD -sz 8 -oz 1 -elu 64 -l 32,32 -e 1 -d data/trx.json
+
+  mongo:
+    image: mongo:4.0.23-xenial 
+    ports:
+      - 27017:27017
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=password
+    volumes:
+      - ../data/mongodb/:/data/db

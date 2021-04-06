@@ -14,6 +14,7 @@ from tensorflow.python.keras.saving import saving_utils
 
 class model_manager(object):
     def __init__(self, modelpkl=None, scalerpkls=None):
+        ## this where device detection, devices state loading and device selectrion should occur on multi-gpu
         self.model, self.scalers = None, None
         if modelpkl is not None and scalerpkls is not None:
             self.load_model(modelpkl, scalerpkls)
@@ -52,6 +53,7 @@ class model_manager(object):
         model.compile(optimizer=optimizer, loss=loss)
 
         self.model = model
+
         return self.model
 
     def fit_model(self, x_data, y_data, batch_size, epochs):
@@ -74,7 +76,7 @@ class model_manager(object):
         return predictions, scaled_predictions
 
     def visualize_network(self, output):
-        keras_utils.plot_model(self.model, to_file=output+"/model_map.png", show_shapes=True)
+        keras_utils.plot_model(self.model, to_file="/".join([output,"model_map.png"]), show_shapes=True)
 
     def evaluate_model(scaled_predictions, valid): 
         return np.sqrt(np.mean(scaled_predictions-valid)**2)        
