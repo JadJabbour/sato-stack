@@ -17,6 +17,8 @@ pydot = "*"
 zerorpc = "*"
 numba = "*"
 celery = "*"
+invoke = "*"
+redis = "*"
 
 [dev-packages]
 

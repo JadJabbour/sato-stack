@@ -1,14 +1,13 @@
-import math
-import datetime
+from actions.celery import clapp, training_worker_queue
 
-from lib import io_manager, data_manager, model_manager, db_manager
-from entities.domain import lstm_model
-from jobs import tasker as cltsk
-
-tasker = cltsk()
-
-@tasker.training.task
+@clapp.task(queue=training_worker_queue)
 def refit_model(model_id, training_data_size, epochs, _data):
+    import math
+    import datetime
+
+    from lib import io_manager, data_manager, model_manager, db_manager
+    from entities.domain import lstm_model
+    
     io = io_manager(session_id=model_id)
     dpp = data_manager()
 

@@ -50,17 +50,21 @@ class io_manager(object):
 
     def load_celery_config(self):
         if 'CELERY' in self.configuration:
-            training_worker = self.configuration['CELERY']['training_worker']
-            inference_worker = self.configuration['CELERY']['inference_worker']
-            training_worker_name = self.configuration['CELERY']['training_worker_name']
-            inference_worker_name = self.configuration['CELERY']['inference_worker_name']
+            training_worker_queue = self.configuration['CELERY']['training_queue']
+            inference_worker_queue = self.configuration['CELERY']['inference_queue']
             broker = self.configuration['CELERY']['broker']
-            command = self.configuration['CELERY']['command']
-            working_dir = self.configuration['CELERY']['working_dir']
-            daemonize = self.configuration['CELERY']['daemonize']
-            return training_worker, inference_worker, training_worker_name, inference_worker_name, broker, command, working_dir, daemonize
+            backend = self.configuration['CELERY']['backend']
+            return training_worker_queue, inference_worker_queue, broker, backend
         else:
             raise Exception('Missing CELERY section from config file')
+
+    def load_celery_worker_config(self):
+        if 'CELERY_WORKER' in self.configuration:
+            concurrency = self.configuration['CELERY_WORKER']['concurrency']
+            logging = self.configuration['CELERY_WORKER']['logging']
+            return concurrency, logging
+        else:
+            raise Exception('Missing CELERY_WORKER section from config file')
 
     def load_db_config(self):
         if 'MONGODB' in self.configuration:

@@ -1,6 +1,6 @@
 def create_fit_model(args):
     from actions import create_fit_model as cfm
-    return cfm(
+    cfm.delay(
         ticker=args.ticker if args.ticker else Exception('Missing ticker symbol'),
         features=args.features.split(',') if args.features else ['Open', 'High', 'Low', 'Close'], 
         tech_features=args.tech_features.split(',') if args.tech_features else ['MACD', 'RSI', 'BBS'], 
@@ -18,3 +18,5 @@ def create_fit_model(args):
         _data=args.data if args.data else Exception('Missing ohlcv time series data'), 
         _description=args.description if args.description else Exception('Missing model description')
     )
+
+    return "queued"

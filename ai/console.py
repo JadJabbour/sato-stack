@@ -2,14 +2,14 @@ import sys
 
 from lib import io_manager
 from interface import console
-##  should add try catch to actions and raise proper exceptions
+
 def run():
     io = io_manager(do_init=False)
 
     io.load_config(config_file_path='config.ini')
 
     name, description = io.load_console_config()
-    ##  should find a way to move these to config (casting as type for last field?)
+
     args_def = [
         ('-a', '--action', 'The Seers.ai.actions to run', str),
         ('-mid', '--model_id', 'The Seers.ai.lstm_model`s id', str),
