@@ -1,7 +1,7 @@
 import zerorpc
 
 from lib import io_manager
-from interface.mq import zero_router
+from interface.zrpc import zero_router
 
 def create_zrpc():
     io = io_manager(do_init=False)
