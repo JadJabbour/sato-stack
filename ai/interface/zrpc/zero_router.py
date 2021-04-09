@@ -1,7 +1,8 @@
-from actions import create_fit_model as cfm, test as tst
-from json_tricks import dumps
 class zero_router(object):
     def create_fit_model(self, ticker, sequence_size, output_sequence_size, edge_layer_units, layers, epochs, data, description):
+        from actions import create_fit_model as cfm
+        from entities.ETO import task_eto
+        from datetime import datetime
 
         cfm.delay(
             ticker= ticker if ticker else Exception('Missing ticker symbol'),
@@ -22,13 +23,26 @@ class zero_router(object):
             _description= description if description else Exception('Missing model description')
         )
         
-        return "training session queued"
+        return task_eto(
+            task.id,
+            'create_fit_model',
+            datetime.now().timestamp()
+        ).__dict__
 
     def refit_model(self, **kwargs):
         from actions import refit_model as rfm
-        return rfm.delay(
+        from entities.ETO import task_eto
+        from datetime import datetime
+        
+        rfm.delay(
             model_id=kwargs.model_id if kwargs.model_id else Exception('Missing model ID'),
             training_data_size=int(kwargs.training_data_size) if kwargs.training_data_size else 95, 
             epochs=int(kwargs.epochs) if kwargs.epochs else Exception('Missing number of training epochs'), 
             _data=kwargs.data if kwargs.data else Exception('Missing ohlcv time series data')
         )
+
+        return task_eto(
+            task.id,
+            'refit_model',
+            datetime.now().timestamp()
+        ).__dict__

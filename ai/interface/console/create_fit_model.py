@@ -1,6 +1,9 @@
 def create_fit_model(args):
     from actions import create_fit_model as cfm
-    cfm.delay(
+    from entities.ETO import task_eto
+    from datetime import datetime
+
+    task = cfm.delay(
         ticker=args.ticker if args.ticker else Exception('Missing ticker symbol'),
         features=args.features.split(',') if args.features else ['Open', 'High', 'Low', 'Close'], 
         tech_features=args.tech_features.split(',') if args.tech_features else ['MACD', 'RSI', 'BBS'], 
@@ -19,4 +22,8 @@ def create_fit_model(args):
         _description=args.description if args.description else Exception('Missing model description')
     )
 
-    return "queued"
+    return task_eto(
+        task.id,
+        'create_fit_model',
+        datetime.now().timestamp()
+    ).__dict__

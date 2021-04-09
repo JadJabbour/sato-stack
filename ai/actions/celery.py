@@ -7,5 +7,10 @@ training_worker_queue, inference_worker_queue, broker, backend = io.load_celery_
 
 clapp = celery_manager(app_name='actions', broker=broker, backend=backend, include=['actions.create_fit_model', 'actions.refit_model', 'actions.generate_prediction'])
 
+clapp.conf.update(
+    CELERY_ENABLE_UTC = True,
+    CELERY_TIMEZONE = "UTC"
+)
+
 if __name__ == "__main__":
     clapp.start()

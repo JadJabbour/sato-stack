@@ -1,11 +1,10 @@
 import os
 
-# from invoke import run
 from subprocess import Popen, DETACHED_PROCESS
 
 from lib import io_manager
 
-def ctrl_workers(action):
+def launch_workers(action):
     io = io_manager(do_init=False)
 
     io.load_config(config_file_path='config.ini')
@@ -22,16 +21,10 @@ def ctrl_workers(action):
     if(not os.path.isdir("celerydata/celery-logs")):
         os.mkdir("celerydata/celery-logs")
 
-    # run("celery multi {action} {training_worker_name} {inference_worker_name} "\
-    #       "-Q:{training_worker_name} {training_worker_name} -Q:{inference_worker_name} {inference_worker_name} "\
-    #       "-c {concurrency} -l {logging} -A actions "\
-    #       "--pidfile=celerydata/celery-pids/%n.pid --logfile=celerydata/celery-logs/%n.log".format(
-    #           action=action, 
-    #           training_worker_name=training_worker_queue, 
-    #           inference_worker_name=inference_worker_queue,
-    #           concurrency=concurrency,
-    #           logging=logging
-    #     )
-    # )    
+    cmd_training = "pipenv run celery -A actions worker -Q {training_worker_queue} -l {logging} -c {concurrency} -P solo --pidfile=celery-pids/training.pid --logfile=celery-logs/training.log".format(training_worker_queue, logging, concurrency)  
+    cmd_inference = "pipenv run celery -A actions worker -Q {inference_worker_queue} -l {logging} -c {concurrency} -P solo --pidfile=celery-pids/inference.pid --logfile=celery-logs/inference.log".format(inference_worker_queue, logging, concurrency) 
     
-    return Popen("pipenv run celery -A actions worker -Q training -l debug -P solo".split(), creationflags=DETACHED_PROCESS)
+    return [ 
+        Popen(cmd_training.split(), creationflags=DETACHED_PROCESS),
+        Popen(cmd_inference.split(), creationflags=DETACHED_PROCESS)
+    ]
