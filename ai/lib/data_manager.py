@@ -32,7 +32,7 @@ class data_manager(object):
     def select_data_features(self, df, features):
         return df.filter(features)
 
-    def merge_dataframes(self, df1, df2, axis=1):
+    def merge_dataframes(df1, df2, axis=1):
         return pd.concat([df1, df2], axis=axis)
 
     def floor_pos_int_or_min_default(integer, min_default):
@@ -90,44 +90,10 @@ class data_manager(object):
 
         return ret_df
 
-    def calculate_tech_features_jitted(self, df, rolling_window, tech_features_labels):
-        tmp_df = df.copy()
-        ret_df = df.copy()
-        tmp_df.columns = tmp_df.columns.str.lower()
-
-        if 'RSI' in tech_features_labels:
-            ret_df['RSI'] = TA.RSI(tmp_df, period=data_manager.floor_pos_int_or_default(rolling_window,14)).to_numpy()
-
-        if 'EVWMA' in tech_features_labels:
-            ret_df['EVWMA'] = TA.EVWMA(tmp_df, period=data_manager.floor_pos_int_or_default(rolling_window,20))
-
-        if 'MACD' in tech_features_labels:
-            macd = TA.MACD(
-                tmp_df,
-                period_fast=data_manager.floor_pos_int_or_default(rolling_window/2,12),
-                period_slow=data_manager.floor_pos_int_or_default(rolling_window,26),
-                signal=data_manager.floor_pos_int_or_default(rolling_window/3,9)
-            )
-            ret_df['MACD'] = macd.iloc[:,0].to_numpy()
-            ret_df['MACDSIG'] = macd.iloc[:,1].to_numpy()
-
-        if 'BBS' in tech_features_labels:
-            bbs = TA.BBANDS(
-                tmp_df, 
-                period=data_manager.floor_pos_int_or_default(rolling_window,20), 
-                MA=TA.KAMA(
-                    tmp_df, 
-                    period=data_manager.floor_pos_int_or_default(rolling_window,20), 
-                    er=data_manager.floor_pos_int_or_default(rolling_window/2,10), 
-                    ema_fast=data_manager.floor_pos_int_or_min_default(rolling_window/10,2), 
-                    ema_slow=data_manager.floor_pos_int_or_default(rolling_window+10,30)
-                )
-            )
-            ret_df['BBU'] = bbs.iloc[:,0].to_numpy()
-            ret_df['BBM'] = bbs.iloc[:,1].to_numpy()
-            ret_df['BBL'] = bbs.iloc[:,2].to_numpy()
-
-        return ret_df
+    def shift_add_recalc_tech_feats(self, original_df, new_df, rolling_window, tech_features_labels, shift_by=1):
+        # need to find a way to recalculate for only the new df
+        ret_df = data_manager.merge_dataframes(original_df, new_df)[-shift_by:]
+        return self.calculate_tech_features(ret_df, rolling_window, tech_features_labels)
 
     def split_train_test_data(self, df, split_rate, sequence_size, batch_size):
         training_data_len = math.ceil(len(df) * (split_rate/100))
@@ -169,24 +135,25 @@ class data_manager(object):
         train_data = train_data.values
         test_data = test_data.values
 
-        for i in range(sequence_size, len(train_data)):
+        for i in range(sequence_size, (len(train_data)-(output_seq_size-1))):
             x_train.append(train_data[i-sequence_size:i,:])
-            y_train.append(train_data[i,0:len(features)])
+            y_train.append(train_data[i:i+output_seq_size,0:len(features)])
 
         x_train, y_train = np.array(x_train), np.array(y_train)
         x_train = np.reshape(x_train, (x_train.shape[0], x_train.shape[1], len(features)+len(tech_features))) 
-        y_train = np.reshape(y_train, (y_train.shape[0], len(features))) 
+        y_train = np.reshape(y_train, (y_train.shape[0], y_train.shape[1], len(features))) 
 
-        for i in range(sequence_size, len(test_data)):
+        for i in range(sequence_size, (len(test_data)-(output_seq_size-1))):
             x_test.append(test_data[i-sequence_size:i,:])
-            y_test.append(test_data[i,0:len(features)])
+            y_test.append(test_data[i:i+output_seq_size,0:len(features)])
 
-        x_test = np.array(x_test)
+        x_test, y_test = np.array(x_test), np.array(y_test)
         x_test = np.reshape(x_test, (x_test.shape[0], x_test.shape[1], len(features)+len(tech_features)))
+        y_test = np.reshape(y_test, (y_test.shape[0], y_test.shape[1], len(features))) 
 
         return x_train, y_train, x_test, y_test
         
-    def sequence_for_inference_to_numpy(self, data, sequence_size, output_seq_size, features, tech_features):
+    def sequence_for_inference_to_numpy(self, data, sequence_size, features, tech_features):
         x_data = np.array([]) 
         data = data.values
 

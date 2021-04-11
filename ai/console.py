@@ -31,9 +31,12 @@ def run():
         ('-bz', '--batch_size', 'The size of the batches to group the data based on (defaults to 1, use in tandem with sequence_size) for optimal results', int),
         ('-e', '--epochs', 'The number of epochs/episodes of fitting model to data', int),
         ('-d', '--data', 'The json representation of the ohlcv time series dataset for training as string or filepath', str),
+        ('-dly', '--delay', 'run the command in a bg thread ([default]0=run in current thread; 1=run in rabbitMQ/celery worker)', int)
     ]
 
     args = io_manager.parse_args(name, description, args_def)
+
+    args.delay = True if args.delay and args.delay==1 else False
 
     if args.action is not None and not args.action == "": 
         io_manager.out(

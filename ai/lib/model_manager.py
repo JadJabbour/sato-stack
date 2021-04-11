@@ -1,6 +1,6 @@
 import math
 import datetime
-
+import sys
 import numpy as np
 import pandas as pd
 
@@ -9,7 +9,7 @@ from pickle import dumps as pdumps, loads as ploads
 from tensorflow import keras as kr
 from tensorflow.keras import utils as keras_utils
 from tensorflow.keras.models import Sequential, Model
-from tensorflow.keras.layers import Dense, LSTM, Dropout, deserialize, serialize
+from tensorflow.keras.layers import Dense, LSTM, Dropout, Reshape, deserialize, serialize
 from tensorflow.python.keras.saving import saving_utils
 
 class model_manager(object):
@@ -30,7 +30,7 @@ class model_manager(object):
 
         return self.model, self.scalers
 
-    def create_model(self, edge_layers_units, layers, optimizer, loss, output_features, training_data_shape, input_do=0., recurr_do=0., stateful=True):
+    def create_model(self, edge_layers_units, layers, optimizer, loss, output_features, training_data_shape, output_sequence_size, input_do=0., recurr_do=0., stateful=True):
         model_manager.keras_picklable_wrapper(Model)
 
         model = Sequential()
@@ -48,38 +48,56 @@ class model_manager(object):
         if recurr_do > 0:
             model.add(Dropout(recurr_do))
 
-        model.add(Dense(math.floor(int(edge_layers_units)/2)))
-        model.add(Dense(output_features))
-        model.compile(optimizer=optimizer, loss=loss)
+        model.add(Dense(output_features*output_sequence_size))
+        model.add(Reshape((output_sequence_size, output_features)))
+
+        model.compile(optimizer=optimizer, loss=loss, metrics=['accuracy','mse', 'mae', 'mape'])
 
         self.model = model
 
         return self.model
 
     def fit_model(self, x_data, y_data, batch_size, epochs):
-        self.model.fit(x_data, y_data, batch_size=int(batch_size), epochs=int(epochs))
-        return self.model
+        fitobj = self.model.fit(x_data, y_data, batch_size=int(batch_size), epochs=int(epochs))
+        return model_manager.evaluate_model(fitobj)
 
     def inverse_scale(scaler, data):
         return scaler.inverse_transform(data)
 
-    def generate_prediction(self, x_data, features, df_indeces=None, scalers=None, batch_size=1):
+    def generate_prediction(self, x_data, features, output_size, df_indeces, scalers=None, batch_size=1):
+        predictions = []
+
         sclrs = scalers if scalers is not None else self.scalers
 
-        scaled_predictions = self.model.predict(x_data, batch_size)
-        predictions = pd.DataFrame(data=scaled_predictions, index=df_indeces, columns=features)
+        temp_indeces = [[df_indeces[i:i+output_size]] for i in range(len(df_indeces)-(output_size-1))]
 
-        for feat in features:
-            predictions[feat] = model_manager.inverse_scale(sclrs[feat], predictions[[feat]])
+        df_indeces = temp_indeces
+        scaled_predictions = self.model.predict(x_data, batch_size)
+
+        for block, idcs in zip(scaled_predictions, df_indeces):
+
+            print(block, idcs)
+            sys.exit()
+
+            block_predictions = pd.DataFrame(data=block, index=idcs, columns=features)
+
+            for feat in features:
+                block_predictions[feat] = model_manager.inverse_scale(sclrs[feat], block_predictions[[feat]])
+            
+            predictions.append(block_predictions)
 
         self.scalers = sclrs
+        if output_size == 1:
+            predictions = pd.concat(predictions, axis=1)
+
         return predictions, scaled_predictions
 
     def visualize_network(self, output):
         keras_utils.plot_model(self.model, to_file="/".join([output,"model_map.png"]), show_shapes=True)
 
-    def evaluate_model(scaled_predictions, valid): 
-        return np.sqrt(np.mean(scaled_predictions-valid)**2)        
+    def evaluate_model(fitobj): 
+        history = fitobj.history
+        return [history['accuracy']]       
 
     def picklify(self):
         pkl_mdl = pdumps(self.model)

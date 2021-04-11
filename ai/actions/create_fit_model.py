@@ -1,5 +1,5 @@
 from actions.celery import clapp, training_worker_queue
-
+import sys
 @clapp.task(queue=training_worker_queue)
 def create_fit_model(ticker, features, tech_features, rolling_window, training_data_size, sequence_size, output_sequence_size, edge_layer_units, layers, batch_size, epochs, input_dropout, recurrent_dropout, stateful, _data, _description):
     import math
@@ -68,27 +68,37 @@ def create_fit_model(ticker, features, tech_features, rolling_window, training_d
 
     x_train, y_train, x_test, y_test = dpp.group_data_by_sequence_to_numpy(scaled_train_data, scaled_test_data, sequence_size, output_sequence_size, features, tech_feature_labels)
 
-    model = mm.create_model(edge_layer_units, layers, optimizer, loss, len(features), (batch_size, x_train.shape[1], len(all_features)), input_dropout, recurrent_dropout, stateful)
+    lstm = mm.create_model(edge_layer_units, layers, optimizer, loss, len(features), (batch_size, x_train.shape[1], len(all_features)), output_sequence_size, input_dropout, recurrent_dropout, stateful)
 
     mm.visualize_network(out_to)
 
-    model = mm.fit_model(x_train, y_train, batch_size, epochs)
+    fitres = mm.fit_model(x_train, y_train, batch_size, epochs)
 
-    predictions, scaled_predictions = mm.generate_prediction(x_test, features, test_data_index_range, scalers, batch_size)
-
-    rmse = model_manager.evaluate_model(scaled_predictions, y_test)
+    predictions, scaled_predictions = mm.generate_prediction(x_test, features, output_sequence_size, test_data_index_range, scalers, batch_size)
 
     display_from_original = df_rawdata['Close'][training_data_len-math.ceil(len(test_data_index_range)*1.5):]
 
+    # to_disp = [display_from_original]
+    # ci = 1
+    # for pred in predictions:
+    #     to_disp.append(pred['Close'])
+    #     ci += 1
+
+
+
     display = []
-    display.append(([display_from_original, predictions['Close']], ['Close', 'P_'+'Close']))
+    display.append(([display_from_original, predictions], ['Close', 'Predicted']))
 
     for td in display:
         io.plot_datasets(plot_style, ticker + ' Close ' + plot_title, td[0], plot_fig_size, plot_x_label, plot_y_label, ticker + '_Close', output_dpi, figformat, td[1], show_plot)
 
     pkl_model, pkl_scalers = mm.picklify()
-    
-    predictions.index = predictions.index.map(str)
+
+    fixed_idx_pred = []
+    for p in predictions:
+        p.index = p.index.map(str)
+        p = p.to_dict(orient='index')
+        fixed_idx_pred.append(p)
 
     model = lstm_model(
         model_id=session_id,
@@ -110,8 +120,8 @@ def create_fit_model(ticker, features, tech_features, rolling_window, training_d
         },
         training_data_length=training_data_len,
         features=all_features,
-        rmse=rmse,
-        test_predictions=predictions.to_dict(orient='index'),
+        score=str(fitres),
+        test_predictions=fixed_idx_pred,
         model=pkl_model,
         description=_description,
         scalers=pkl_scalers,

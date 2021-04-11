@@ -1,7 +1,31 @@
 .vs
 .vscode
+
 *.pyc
 *.pyo
 */data
 */logs
 */celerydata
+__pycache__
+
+node_modules
+package-lock.json
+
+# testing
+/coverage
+
+# production
+/build
+
+# misc
+.eslintcache
+.DS_Store
+.idea
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

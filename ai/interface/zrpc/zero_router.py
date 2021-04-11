@@ -4,7 +4,7 @@ class zero_router(object):
         from entities.ETO import task_eto
         from datetime import datetime
 
-        cfm.delay(
+        task = cfm.delay(
             ticker= ticker if ticker else Exception('Missing ticker symbol'),
             features= ['Open', 'High', 'Low', 'Close'], 
             tech_features= ['MACD', 'RSI', 'BBS'], 
@@ -34,7 +34,7 @@ class zero_router(object):
         from entities.ETO import task_eto
         from datetime import datetime
         
-        rfm.delay(
+        task = rfm.delay(
             model_id=kwargs.model_id if kwargs.model_id else Exception('Missing model ID'),
             training_data_size=int(kwargs.training_data_size) if kwargs.training_data_size else 95, 
             epochs=int(kwargs.epochs) if kwargs.epochs else Exception('Missing number of training epochs'), 

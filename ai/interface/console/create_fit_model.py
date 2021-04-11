@@ -3,7 +3,9 @@ def create_fit_model(args):
     from entities.ETO import task_eto
     from datetime import datetime
 
-    task = cfm.delay(
+    run = cfm.delay if args.delay else cfm
+
+    task = run(
         ticker=args.ticker if args.ticker else Exception('Missing ticker symbol'),
         features=args.features.split(',') if args.features else ['Open', 'High', 'Low', 'Close'], 
         tech_features=args.tech_features.split(',') if args.tech_features else ['MACD', 'RSI', 'BBS'], 
@@ -22,8 +24,8 @@ def create_fit_model(args):
         _description=args.description if args.description else Exception('Missing model description')
     )
 
-    return task_eto(
+    return (task if not args.delay else task_eto(
         task.id,
         'create_fit_model',
         datetime.now().timestamp()
-    ).__dict__
+    ).__dict__)
