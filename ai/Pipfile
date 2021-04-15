@@ -18,6 +18,7 @@ zerorpc = "*"
 numba = "*"
 celery = "*"
 redis = "*"
+pandas-datareader = "*"
 
 [dev-packages]
 

@@ -51,7 +51,7 @@ class model_manager(object):
         model.add(Dense(output_features*output_sequence_size))
         model.add(Reshape((output_sequence_size, output_features)))
 
-        model.compile(optimizer=optimizer, loss=loss, metrics=['accuracy','mse', 'mae', 'mape'])
+        model.compile(optimizer=optimizer, loss=loss, metrics=['accuracy'])
 
         self.model = model
 
@@ -69,15 +69,12 @@ class model_manager(object):
 
         sclrs = scalers if scalers is not None else self.scalers
 
-        temp_indeces = [[df_indeces[i:i+output_size]] for i in range(len(df_indeces)-(output_size-1))]
+        temp_indeces = [df_indeces[i:i+output_size] for i in range(len(df_indeces)-(output_size-1))]
 
         df_indeces = temp_indeces
         scaled_predictions = self.model.predict(x_data, batch_size)
-
+        # scaled_predictions = scaled_predictions[1:]
         for block, idcs in zip(scaled_predictions, df_indeces):
-
-            print(block, idcs)
-            sys.exit()
 
             block_predictions = pd.DataFrame(data=block, index=idcs, columns=features)
 
@@ -87,10 +84,8 @@ class model_manager(object):
             predictions.append(block_predictions)
 
         self.scalers = sclrs
-        if output_size == 1:
-            predictions = pd.concat(predictions, axis=1)
 
-        return predictions, scaled_predictions
+        return pd.concat(predictions), scaled_predictions
 
     def visualize_network(self, output):
         keras_utils.plot_model(self.model, to_file="/".join([output,"model_map.png"]), show_shapes=True)

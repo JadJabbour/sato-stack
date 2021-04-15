@@ -101,7 +101,7 @@ class data_manager(object):
         train_data = df.iloc[0:training_data_len,:].copy()
         test_data = df.iloc[training_data_len:,:].copy()
 
-        test_data_index_range = test_data.index[sequence_size:]
+        test_data_index_range = test_data.index[sequence_size+1:]
         to_drop_train = len(train_data) % batch_size
         to_drop_test = len(test_data) % batch_size
 

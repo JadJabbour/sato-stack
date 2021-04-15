@@ -1,5 +1,5 @@
 from actions.celery import clapp, training_worker_queue
-import sys
+
 @clapp.task(queue=training_worker_queue)
 def create_fit_model(ticker, features, tech_features, rolling_window, training_data_size, sequence_size, output_sequence_size, edge_layer_units, layers, batch_size, epochs, input_dropout, recurrent_dropout, stateful, _data, _description):
     import math
@@ -76,30 +76,26 @@ def create_fit_model(ticker, features, tech_features, rolling_window, training_d
 
     predictions, scaled_predictions = mm.generate_prediction(x_test, features, output_sequence_size, test_data_index_range, scalers, batch_size)
 
+    # print(predictions['Close'])
+
     display_from_original = df_rawdata['Close'][training_data_len-math.ceil(len(test_data_index_range)*1.5):]
 
-    # to_disp = [display_from_original]
-    # ci = 1
-    # for pred in predictions:
-    #     to_disp.append(pred['Close'])
-    #     ci += 1
-
-
-
     display = []
-    display.append(([display_from_original, predictions], ['Close', 'Predicted']))
+    display.append(([display_from_original, predictions['Close']], ['Close', 'Predicted']))
 
     for td in display:
         io.plot_datasets(plot_style, ticker + ' Close ' + plot_title, td[0], plot_fig_size, plot_x_label, plot_y_label, ticker + '_Close', output_dpi, figformat, td[1], show_plot)
 
     pkl_model, pkl_scalers = mm.picklify()
 
-    fixed_idx_pred = []
-    for p in predictions:
-        p.index = p.index.map(str)
-        p = p.to_dict(orient='index')
-        fixed_idx_pred.append(p)
-
+    # fixed_idx_pred = []
+    # for p in predictions:
+    #     p.index = p.index.map(str)
+    #     p = p.to_dict(orient='index')
+    #     fixed_idx_pred.append(p)
+    predictions.index = predictions.index.map(str)
+    fixed_idx_pred = predictions
+    
     model = lstm_model(
         model_id=session_id,
         parameters={
