@@ -73,7 +73,7 @@ class model_manager(object):
         
         scaled_predictions = self.model.predict(x_data, batch_size)
         
-        for block, idcs in zip(scaled_predictions, df_indeces):
+        for block, idcs in zip(scaled_predictions, temp_indeces):
 
             block_predictions = pd.DataFrame(data=block, index=idcs, columns=features)
             for feat in features:
