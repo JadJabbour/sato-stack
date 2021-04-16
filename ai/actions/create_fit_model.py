@@ -94,7 +94,7 @@ def create_fit_model(ticker, features, tech_features, rolling_window, training_d
     #     p = p.to_dict(orient='index')
     #     fixed_idx_pred.append(p)
     predictions.index = predictions.index.map(str)
-    fixed_idx_pred = predictions
+    fixed_idx_pred = [predictions.to_dict()]
     
     model = lstm_model(
         model_id=session_id,
