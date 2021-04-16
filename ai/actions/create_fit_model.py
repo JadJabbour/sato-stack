@@ -130,4 +130,4 @@ def create_fit_model(ticker, features, tech_features, rolling_window, training_d
 
     dbconn.disconnectdb()
 
-    return io.session_id, rmse
+    return io.session_id, str(fitres)
