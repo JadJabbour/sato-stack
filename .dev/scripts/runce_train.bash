@@ -1,13 +1,17 @@
 #!/usr/bin/env bash
 
-cd ../../ai
+## Scraping data 
+
+bash ./runce_scraper.bash $1
 
 ## Staging fresh model and fitting
 
+cd ../../ai
+
 python -m pipenv run python -m console -a create_fit_model \
 -desc 'a model for predicting XRP-USD fluctuations' \
--t ETH-USD \
--ido 0.1 -rdo 0.2 \
--tz 97 \
--sz 16 -oz 1 -elu 32 -l 64,128 -e 100 \
--d data/ETH-USD.json
+-t $1 \
+-ido 0.0 -rdo 0.0 \
+-tz 80 \
+-sz 11 -oz 1 -elu 32 -l 128,64 -e 30 \
+-d data/$1.json

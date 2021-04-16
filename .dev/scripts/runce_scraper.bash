@@ -5,7 +5,7 @@ cd ../../ai
 ### Scrape ticker data
 
 ## from date
-printf -v from '2019-01-01' -1
+printf -v from '2018-01-01' -1
 
 ## to today
 printf -v date '%(%Y-%m-%d)T' -1 
