@@ -96,21 +96,21 @@ class data_manager(object):
         return self.calculate_tech_features(ret_df, rolling_window, tech_features_labels)
 
     def split_train_test_data(self, df, split_rate, sequence_size, batch_size):
-        training_data_len = math.ceil(len(df) * (split_rate/100))
+        training_data_len = math.ceil(len(df)*(split_rate/100))
 
         train_data = df.iloc[0:training_data_len,:].copy()
         test_data = df.iloc[training_data_len:,:].copy()
 
-        test_data_index_range = test_data.index[sequence_size+1:]
         to_drop_train = len(train_data) % batch_size
         to_drop_test = len(test_data) % batch_size
-
+        
         if to_drop_train > 0:
             train_data = train_data[to_drop_train:]
 
         if to_drop_test > 0:
             test_data = test_data[:-1 * to_drop_test]
-            test_data_index_range = test_data_index_range[:-1 * to_drop_test]
+
+        test_data_index_range = test_data.index[sequence_size:]
 
         return train_data, test_data, test_data_index_range, training_data_len
     

@@ -142,8 +142,8 @@ class io_manager(object):
         plt.figure(figsize=figsize)
         plt.title(title)
         for i in range(len(datasets)):
-            plt.plot(datasets[i])
-        plt.xticks(datasets[0].index[0::7])
+            plt.plot(datasets[i], marker='d', linewidth=1)
+        plt.xticks(datasets[0].index[0::1])
         plt.xlabel(xlabel, fontsize=18)
         plt.ylabel(ylabel, fontsize=18)
         plt.legend(legend, loc='lower right')
@@ -161,10 +161,10 @@ class io_manager(object):
                 transport = sys.stderr
                 logger = logging.error if logger is not None else None
                 exception_heading = exception_type.join(["\n<ERROR>", "</ERROR>\n"])
-                content = "".join([(content if isinstance(content, str) else "".join([json_dump(content.args), '\n'])), io_manager.format_exception()])
+                content = "\n".join([(content if isinstance(content, str) else " ".join(content.args)), io_manager.format_exception()])
                 io_manager.print(exception_heading, transport, logger)
                 io_manager.print(":".join([exception_atfile, str(exception_atline)]).join(["@", "\n"]), transport, logger)
-            io_manager.print(json_dump(content), transport, logger)
+            io_manager.print(content, transport, logger)
         except Exception as ex:
             exception_type = sys.exc_info()[0].__name__
             exception_atfile = sys.exc_info()[2].tb_frame.f_code.co_filename
