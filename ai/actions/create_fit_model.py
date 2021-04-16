@@ -76,7 +76,7 @@ def create_fit_model(ticker, features, tech_features, rolling_window, training_d
 
     predictions, scaled_predictions = mm.generate_prediction(x_test, features, output_sequence_size, test_data_index_range, scalers, batch_size)
 
-    # print(predictions['Close'])
+    # print(predictions[-1:,:])
 
     display_from_original = df_rawdata['Close'][training_data_len-math.ceil(len(test_data_index_range)*1.5):]
 

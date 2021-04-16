@@ -71,7 +71,6 @@ class model_manager(object):
 
         temp_indeces = [df_indeces[i:i+output_size] for i in range(len(df_indeces)-(output_size-1))]
         
-        df_indeces = temp_indeces
         scaled_predictions = self.model.predict(x_data, batch_size)
         
         for block, idcs in zip(scaled_predictions, df_indeces):
