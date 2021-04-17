@@ -1,5 +1,5 @@
 from actions.celery import clapp, training_worker_queue
-import sys
+
 @clapp.task(queue=training_worker_queue)
 def create_fit_model(ticker, features, tech_features, rolling_window, training_data_size, sequence_size, output_sequence_size, edge_layer_units, layers, batch_size, epochs, input_dropout, recurrent_dropout, stateful, _data, _description):
     import math
