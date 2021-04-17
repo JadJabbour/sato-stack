@@ -8,7 +8,7 @@ cd ../../ai
 printf -v from '2018-01-01' -1
 
 ## to today
-printf -v date '%(%Y-%m-%d)T' -1 
+date=$(date -d "yesterday" '+%Y-%m-%d')
 
 echo "Scraping data from Yahoo for $1 [$from > $date]"
 echo "--------------------------------------------------------------"

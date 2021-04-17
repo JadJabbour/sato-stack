@@ -15,4 +15,4 @@ class lstm_model(Document):
     refits = ListField(DictField())
     updated_at = DateTimeField(default=datetime.datetime.utcnow)
     created_at = DateTimeField(default=datetime.datetime.utcnow)
-    meta = {'indexes': ['description', '$description', 'score']}
+    meta = {'indexes': ['description', '$description']}

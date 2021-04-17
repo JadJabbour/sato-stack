@@ -3,15 +3,16 @@
 ## Scraping data 
 
 bash ./runce_scraper.bash $1
+tick="Model for predicting ${1} fluctuations"
 
 ## Staging fresh model and fitting
 
 cd ../../ai
 
 python -m pipenv run python -m console -a create_fit_model \
--desc 'a model for predicting $1 fluctuations' \
+-desc "${tick}" \
 -t $1 \
--ido 0.0 -rdo 0.0 \
--tz 80 \
--sz 11 -oz 1 -elu 32 -l 128,64 -e 1 \
+-ido 0.1 -rdo 0.1 \
+-tz 90 \
+-sz 7 -oz 2 -elu 72 -l 144 -e 36 \
 -d data/$1.json

@@ -76,26 +76,30 @@ def create_fit_model(ticker, features, tech_features, rolling_window, training_d
 
     predictions, scaled_predictions = mm.generate_prediction(x_test, features, output_sequence_size, test_data_index_range, scalers, batch_size)
 
-    # print(predictions[-1:,:])
+    display_from_original = df_rawdata['Close'][training_data_len-math.ceil(len(test_data_index_range)*0.75):]
 
-    display_from_original = df_rawdata['Close'][training_data_len-math.ceil(len(test_data_index_range)*1.5):]
-
-    display = []
-    display.append(([display_from_original, predictions['Close']], ['Close', 'Predicted']))
+    display, fixed_idx_pred = [], []
+    if(output_sequence_size == 1):
+        display.append(([display_from_original, predictions['Close']], ['Close', 'Predicted']))
+        fixed_idx_pred = predictions
+        fixed_idx_pred.index = fixed_idx_pred.index.map(str)
+        fixed_idx_pred = [fixed_idx_pred.to_dict(orient='index')]
+    else:
+        temp = [display_from_original]
+        legn = ['Close']
+        for p, i in zip(predictions, range(len(predictions))):
+            temp.append(p['Close'])
+            legn.append('p{}'.format(i))
+            tmpp = p.copy()
+            tmpp.index = tmpp.index.map(str)
+            fixed_idx_pred.append(tmpp.to_dict(orient='index'))
+        display.append((temp, ['Close']))
 
     for td in display:
         io.plot_datasets(plot_style, ticker + ' Close ' + plot_title, td[0], plot_fig_size, plot_x_label, plot_y_label, ticker + '_Close', output_dpi, figformat, td[1], show_plot)
 
     pkl_model, pkl_scalers = mm.picklify()
-
-    # fixed_idx_pred = []
-    # for p in predictions:
-    #     p.index = p.index.map(str)
-    #     p = p.to_dict(orient='index')
-    #     fixed_idx_pred.append(p)
-    predictions.index = predictions.index.map(str)
-    fixed_idx_pred = [predictions.to_dict()]
-    
+  
     model = lstm_model(
         model_id=session_id,
         parameters={
@@ -130,4 +134,4 @@ def create_fit_model(ticker, features, tech_features, rolling_window, training_d
 
     dbconn.disconnectdb()
 
-    return io.session_id, str(fitres)
+    return io.session_id

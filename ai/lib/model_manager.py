@@ -83,7 +83,10 @@ class model_manager(object):
 
         self.scalers = sclrs
 
-        return pd.concat(predictions), scaled_predictions
+        if output_size == 1:
+            predictions = pd.concat(predictions)
+
+        return predictions, scaled_predictions
 
     def visualize_network(self, output):
         keras_utils.plot_model(self.model, to_file="/".join([output,"model_map.png"]), show_shapes=True)
