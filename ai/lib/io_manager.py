@@ -108,12 +108,15 @@ class io_manager(object):
             raise Exception('Missing NETWORK_DEFINITION section from config file')
         return optimizer, loss
 
-    def load_data_scaling_type(self):
+    def load_data_scaling_config(self):
         if 'DATA_SCALING' in self.configuration:
             scaling = self.configuration['DATA_SCALING']['scaling']
+            feature_range = self.configuration['DATA_SCALING']['feature_range'].split(',')
+            feature_range[1] = int(feature_range[1])
+            feature_range[0] = int(feature_range[0])
         else:
             raise Exception('Missing DATA_SCALING section from config file')
-        return scaling
+        return scaling, feature_range
 
     def load_plot_definition(self):
         config = self.configuration

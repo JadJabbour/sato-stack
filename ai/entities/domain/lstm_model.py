@@ -9,6 +9,7 @@ class lstm_model(Document):
     features = ListField(StringField(), required=True)
     score = StringField(required=True)
     test_predictions = ListField(DictField(), required=True)
+    predictions = ListField(DictField(), required=True)
     model = BinaryField(required=True)
     scalers = DictField(BinaryField(), required=True)
     description = StringField(required=True)

@@ -1,1 +1,1 @@
-### [UNDER CONSTRUCTION]
+https://www.tensorflow.org/install/gpu#software_requirements

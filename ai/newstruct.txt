@@ -1,0 +1,46 @@
+main.py
+console.py
+
+config-sample.ini
+config-docker.ini
+config.ini
+
+actions
+ create_fit_model.py
+ refit_model.py
+ infer_predict.py
+
+interface
+ console
+  router.py
+ zrpc
+  router.py
+  server.py
+
+domain
+ entities
+  lstm.py
+  predictions.py
+ constants
+  ohlcv_namemap.py
+  scaler_map.py
+ transfer
+  ETO
+   task
+  DTO
+   notify
+
+core
+ nmodel.py
+ scaler.py
+ xyfield.py
+ 
+infra 
+ io.py
+ config.py
+ db.py
+ worker.py
+
+utils
+  scraper.py
+ 

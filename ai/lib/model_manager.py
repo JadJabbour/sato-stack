@@ -35,7 +35,6 @@ class model_manager(object):
 
         model = Sequential()
         model.add(LSTM(int(edge_layers_units), return_sequences=True, batch_input_shape=training_data_shape, stateful=stateful))
-
         if input_do > 0:
             model.add(Dropout(input_do))
 
@@ -70,9 +69,8 @@ class model_manager(object):
         sclrs = scalers if scalers is not None else self.scalers
 
         temp_indeces = [df_indeces[i:i+output_size] for i in range(len(df_indeces)-(output_size-1))]
-        
+
         scaled_predictions = self.model.predict(x_data, batch_size)
-        scaled_predictions[-1:]
         
         for block, idcs in zip(scaled_predictions, temp_indeces):
 

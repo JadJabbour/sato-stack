@@ -24,7 +24,7 @@ if __name__ == "__main__":
         io_manager.out(ex, is_exception=True, exception_info=sys.exc_info())
         if ps is not None:
             for p in ps:
-                print('killing')
+                print('Killing celery worker')
                 p.kill()
 
     sys.exit()

@@ -1,5 +1,5 @@
 import math
-
+import sys
 import pandas as pd
 import numpy as np
 
@@ -96,13 +96,13 @@ class data_manager(object):
         return self.calculate_tech_features(ret_df, rolling_window, tech_features_labels)
 
     def split_train_test_data(self, df, split_rate, sequence_size, batch_size):
-        training_data_len = math.ceil(len(df)*(split_rate/100))
+        training_data_len = math.ceil(len(df)*(split_rate/100)) if split_rate < 100 else len(df)
 
         train_data = df.iloc[0:training_data_len,:].copy()
-        test_data = df.iloc[training_data_len:,:].copy()
+        test_data = df.iloc[training_data_len:,:].copy() if split_rate < 100 else df.iloc[math.ceil(len(df)*0.8):,:].copy()
 
-        to_drop_train = len(train_data) % batch_size
-        to_drop_test = len(test_data) % batch_size
+        to_drop_train = len(train_data)%batch_size
+        to_drop_test = len(test_data)%batch_size
         
         if to_drop_train > 0:
             train_data = train_data[to_drop_train:]
@@ -114,11 +114,11 @@ class data_manager(object):
 
         return train_data, test_data, test_data_index_range, training_data_len
     
-    def scale_feature(train_data, test_data, scaler_type):
-        active_scaler = scaler_type(feature_range=(0,1)).fit(train_data)
+    def scale_feature(train_data, test_data, scaler_type, feature_range=(0,1)):
+        active_scaler = scaler_type(feature_range=feature_range).fit(train_data)
         return active_scaler.transform(train_data), active_scaler.transform(test_data), active_scaler
 
-    def scale_data_features(self, train_data, test_data, scaler_type, features, pickled_scalers=None):
+    def scale_data_features(self, train_data, test_data, scaler_type, features, pickled_scalers=None, feature_range=(0,1)):
         td, tx = train_data.copy(), test_data.copy()
         scalers = {}
 
@@ -126,26 +126,44 @@ class data_manager(object):
             if(pickled_scalers is not None):
                 td[f], tx[f], scalers[f] = pickled_scalers[f].transform(td[[f]]), pickled_scalers[f].transform(tx[[f]]), pickled_scalers[f]
             else:
-                td[f], tx[f], scalers[f] = data_manager.scale_feature(td[[f]], tx[[f]], self.scaler_map[scaler_type])
+                td[f], tx[f], scalers[f] = data_manager.scale_feature(td[[f]], tx[[f]], self.scaler_map[scaler_type], feature_range)
 
         return td, tx, scalers
+
+    def scale_data_for_inference(self, x_data, features, scalers):
+        xd = x_data.copy()
+
+        for f in features:
+            xd[f] = scalers[f].transform(xd[[f]])
+
+        return xd
 
     def group_data_by_sequence_to_numpy(self, train_data, test_data, sequence_size, output_seq_size, features, tech_features):
         x_train, y_train, x_test, y_test = [], [], [], []
         train_data = train_data.values
         test_data = test_data.values
+        features_idx = []
+        features_idx_dict = {
+            'Open': 0,
+            'High': 1,
+            'Low': 2,
+            'Close': 3
+        }
+
+        for f in features:
+            features_idx.append(features_idx_dict[f])
 
         for i in range(sequence_size, (len(train_data)-(output_seq_size-1))):
             x_train.append(train_data[i-sequence_size:i,:])
-            y_train.append(train_data[i:i+output_seq_size,0:len(features)])
-
+            y_train.append(train_data[i:i+output_seq_size,features_idx])
+        
         x_train, y_train = np.array(x_train), np.array(y_train)
         x_train = np.reshape(x_train, (x_train.shape[0], x_train.shape[1], len(features)+len(tech_features))) 
         y_train = np.reshape(y_train, (y_train.shape[0], y_train.shape[1], len(features))) 
 
         for i in range(sequence_size, (len(test_data)-(output_seq_size-1))):
             x_test.append(test_data[i-sequence_size:i,:])
-            y_test.append(test_data[i:i+output_seq_size,0:len(features)])
+            y_test.append(test_data[i:i+output_seq_size,features_idx])
 
         x_test, y_test = np.array(x_test), np.array(y_test)
         x_test = np.reshape(x_test, (x_test.shape[0], x_test.shape[1], len(features)+len(tech_features)))
@@ -153,12 +171,17 @@ class data_manager(object):
 
         return x_train, y_train, x_test, y_test
         
-    def sequence_for_inference_to_numpy(self, data, sequence_size, features, tech_features):
-        x_data = np.array([]) 
+    def sequence_to_numpy_for_inference(self, data, sequence_size, features, tech_features):
+        x_data = []
         data = data.values
 
-        for i in range(sequence_size, len(data)):
-            x_data.append(data[i-sequence_size:i,:])
+        if(sequence_size == len(data)):
+            x_data.append(data[:,:])
+        else:
+            for i in range(sequence_size, len(data)):
+                x_data.append(data[i-sequence_size:i,:])
+
+        x_data = np.array(x_data)
 
         x_data = np.reshape(x_data, (x_data.shape[0], x_data.shape[1], len(features)+len(tech_features)))
 
