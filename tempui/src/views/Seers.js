@@ -147,7 +147,7 @@ function Seers(props) {
                       {
                         label: "Close",
                         data: getValues(0),
-                        fill: true,
+                        fill: false,
                         backgroundColor: "#1f8ef1",
                         borderColor: "#1f8ef1",
                         borderWidth: 2,
