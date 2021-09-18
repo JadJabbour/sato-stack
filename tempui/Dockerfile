@@ -10,7 +10,6 @@ COPY package.json /usr/src/app/
 
 COPY . /usr/src/app/
 
-RUN npm install  && \
-    npm rebuild node-sass --build-from-source
+RUN npm install
 
 EXPOSE 80 80
