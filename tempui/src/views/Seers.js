@@ -164,7 +164,7 @@ function Seers(props) {
                       {
                         label: "Real Close",
                         data: getValuesReal(0),
-                        fill: true,
+                        fill: false,
                         backgroundColor: "#1f8e50",
                         borderColor: "#1f8e50",
                         borderWidth: 2,
