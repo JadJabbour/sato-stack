@@ -1,5 +1,5 @@
 from actions.celery import clapp, training_worker_queue
-import sys
+
 @clapp.task(queue=training_worker_queue)
 def create_fit_model(ticker, features, tech_features, rolling_window, training_data_size, sequence_size, output_sequence_size, edge_layer_units, layers, batch_size, epochs, input_dropout, recurrent_dropout, stateful, _data, _description):
     import math
@@ -92,12 +92,15 @@ def create_fit_model(ticker, features, tech_features, rolling_window, training_d
 
     display_from_original = df_rawdata['Close'][len(df_rawdata)-math.ceil(len(df_rawdata)*0.25):]
 
-    display, fixed_idx_pred = [], []
+    display, fixed_idx_pred, fixed_idx_ftr = [], [], []
     if(output_sequence_size == 1):
         display.append(([display_from_original, predictions['Close'], future_predictions['Close']], ['Close', 'Predicted']))
         fixed_idx_pred = predictions
         fixed_idx_pred.index = fixed_idx_pred.index.map(str)
         fixed_idx_pred = [fixed_idx_pred.to_dict(orient='index')]
+        fixed_idx_ftr = future_predictions
+        fixed_idx_ftr.index = fixed_idx_ftr.index.map(str)
+        fixed_idx_ftr = [fixed_idx_ftr.to_dict(orient='index')]
     else:
         temp = [display_from_original]
         for p in predictions:
@@ -142,17 +145,17 @@ def create_fit_model(ticker, features, tech_features, rolling_window, training_d
         features=all_features,
         score=str(fitres),
         test_predictions=fixed_idx_pred,
-        predictions='',
+        predictions=fixed_idx_ftr,
         model=pkl_model,
         description=_description,
         scalers=pkl_scalers,
         refits=[]
     )
 
-    # dbconn.connectdb()
+    dbconn.connectdb()
 
-    # model.save()
+    model.save()
 
-    # dbconn.disconnectdb()
+    dbconn.disconnectdb()
 
     return io.session_id

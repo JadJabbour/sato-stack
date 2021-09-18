@@ -3,15 +3,19 @@ try {
   var mongoClient = require("mongodb").MongoClient;
   var bodyParser = require("body-parser");
 
+  var cors = require('cors')
+  
+  expressApp.use(cors())
   expressApp.use(bodyParser.json());
   expressApp.use(bodyParser.urlencoded({ extended: true }));
 
   expressApp.get("/:ticker", (req, res) => {
     mongoClient.connect(
-      "mongodb+srv://root:password@127.0.0.1:27017/?authSource=admin",
+      "mongodb://root:password@mongo:27017/?authSource=admin", { useUnifiedTopology: true },
       function (err, client) {
         if (err) {
-          res.status(500).send("An error occured, please try again later");
+          const { name, message } = err
+          res.status(500).send({name, message});
         } else {
           if (
             !req.query.ticker ||
@@ -21,28 +25,31 @@ try {
             res.status(400).send("Invalid or missing ticker symbol");
           }
           try {
-            const collection = client
-              .db("seersai_curated_predictions")
-              .collection(req.query.ticker);
-            preds = collection.find().sort({ generated_at: -1 }).limit(1);
-            client.close();
-            res.status(200).send(preds);
+            client
+              .db("seers_ai_db")
+              .collection('lstm_model')
+              .find()
+              .toArray((err, docs) => {
+                if(req.query.ticker) {
+                  docs = docs.filter(i => i['parameters']['ticker'] === req.query.ticker)[0];
+                  client.close();
+                  res.status(200).send(docs?.test_predictions[0] || {});
+                }
+            })
           } catch (e) {
-            res
-              .status(500)
-              .send(
-                "Could not connect to DB or collection not found (invalid ticker): " +
-                  e.message
-              );
+            console.log(
+              "Could not connect to DB or collection not found (invalid ticker): " +
+              e.message
+            );
           }
         }
       }
     );
   });
 
-  console.log("MongoDB Gateway running on :53385");
+  console.log("MongoDB Gateway running on :9000");
 
-  expressApp.listen(8080);
+  expressApp.listen(9000);
 } catch (ex) {
   console.log("There was a problem launching the server");
 }

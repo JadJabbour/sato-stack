@@ -1,6 +1,4 @@
-FROM node:15.14.0-alpine3.13
-
-RUN apk --no-cache add --virtual builds-deps build-base python git
+FROM node:14-alpine
 
 RUN mkdir -p /usr/src/app
 
@@ -12,4 +10,4 @@ COPY . /usr/src/app/
 
 RUN npm install 
 
-EXPOSE 53385
+EXPOSE 9000 9000
