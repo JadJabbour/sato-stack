@@ -31,7 +31,8 @@ try {
               .find()
               .toArray((err, docs) => {
                 if(req.query.ticker) {
-                  docs = docs.filter(i => i['parameters']['ticker'] === req.query.ticker)[0];
+                  docs = docs.filter(i => i['parameters']['ticker'] === req.query.ticker);
+                  docs = docs[docs.length-1];
                   client.close();
                   res.status(200).send(docs?.test_predictions[0] || {});
                 }
