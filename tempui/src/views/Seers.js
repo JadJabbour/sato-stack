@@ -37,9 +37,10 @@ function Seers(props) {
   const [selectedTicker, setSelectedTicker] = useState("BTC");
   const [historicalData, setHistoricalData] = useState({});
   const [historicalDataReal, setHistoricalDataReal] = useState({});
+  const [secret, setSecret] = useState("");
 
   useEffect(() => {
-    fetch("http://167.71.60.98:9000/ticker?ticker=" + selectedTicker)//
+    fetch("http://localhost:9000/ticker?ticker=" + selectedTicker) //167.71.60.98
       .then((response) => response.json())
       .then((responseJson) => {
         setHistoricalData(responseJson);
@@ -107,7 +108,7 @@ function Seers(props) {
     if (t.target.value.length >= 3) setSelectedTicker(t.target.value);
   }
 
-  return (
+  return secret && secret !== "" ? (
     <>
       <div className="content">
         <Row>
@@ -117,8 +118,7 @@ function Seers(props) {
               <h4 className="ticker-label"> Change Ticker </h4>
             </label>
             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-            <select
-              onChange={(t) => testClick(t)}>
+            <select onChange={(t) => testClick(t)}>
               <option value="BTC">BTC</option>
               <option value="ETH">ETH</option>
               <option value="SOL">SOL</option>
@@ -187,6 +187,28 @@ function Seers(props) {
         </Row>
       </div>
     </>
+  ) : (
+    <div className="content">
+      <Row>
+        <Col xs="1"></Col>
+        <Col xs="10">
+            <label>
+              <h4 className="ticker-label"> Enter Secret Key </h4>
+            </label>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            <input type="text" onChange={(e) => {
+              if(e.target.value && e.target.value.length >= 15){
+                if(e.target.value === 'B4YsqiY756_cV12'){
+                  setSecret(e.target.value);
+                }
+                else{
+                  alert('Invalid Key');
+                }
+              }
+            }}/>
+        </Col>
+      </Row>
+    </div>
   );
 }
 
