@@ -40,7 +40,7 @@ function Seers(props) {
   const [secret, setSecret] = useState("");
 
   useEffect(() => {
-    fetch("http://localhost:9000/ticker?ticker=" + selectedTicker) //
+    fetch("http://146.190.239.177:9000/ticker?ticker=" + selectedTicker) //
       .then((response) => response.json())
       .then((responseJson) => {
         setHistoricalData(responseJson);
