@@ -40,7 +40,7 @@ function Seers(props) {
   const [secret, setSecret] = useState("");
 
   useEffect(() => {
-    fetch("http://167.71.60.98:9000/ticker?ticker=" + selectedTicker) //
+    fetch("http://localhost:9000/ticker?ticker=" + selectedTicker) //
       .then((response) => response.json())
       .then((responseJson) => {
         setHistoricalData(responseJson);
@@ -123,8 +123,10 @@ function Seers(props) {
               <option value="ETH">ETH</option>
               <option value="SOL">SOL</option>
               <option value="ADA">ADA</option>
+              <option value="TRX">TRX</option>
+              <option value="XRP">XRP</option>
             </select>
-            <span> [SOL, ADA, ETH, BTC... more soon] </span>
+            <span> [SOL, ADA, ETH, BTC, XRP, TRX... more soon] </span>
           </Col>
         </Row>
 
@@ -192,20 +194,23 @@ function Seers(props) {
       <Row>
         <Col xs="1"></Col>
         <Col xs="10">
-            <label>
-              <h4 className="ticker-label"> Enter Secret Key </h4>
-            </label>
-            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-            <input type="text" onChange={(e) => {
-              if(e.target.value && e.target.value.length >= 15){
-                if(e.target.value === 'B4YsqiY756_cV12'){
+          <label>
+            <h4 className="ticker-label"> Enter Secret Key </h4>
+          </label>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+          <input
+            type="text"
+            onChange={(e) => {
+              if (e.target.value && e.target.value.length >= 15) {
+                if (e.target.value === "B4YsqiY756_cV12") {
+                  // B4YsqiY756_cV12_Jad
                   setSecret(e.target.value);
-                }
-                else{
-                  alert('Invalid Key');
+                } else {
+                  alert("Invalid Key");
                 }
               }
-            }}/>
+            }}
+          />
         </Col>
       </Row>
     </div>

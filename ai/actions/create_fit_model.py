@@ -118,8 +118,8 @@ def create_fit_model(ticker, features, tech_features, rolling_window, training_d
         display.append((temp, ['Close']))
 
 
-    for td in display:
-        io.plot_datasets(plot_style, ticker + ' Close ' + plot_title, td[0], plot_fig_size, plot_x_label, plot_y_label, ticker + '_Close', output_dpi, figformat, td[1], show_plot)
+    # for td in display:
+    #     io.plot_datasets(plot_style, ticker + ' Close ' + plot_title, td[0], plot_fig_size, plot_x_label, plot_y_label, ticker + '_Close', output_dpi, figformat, td[1], show_plot)
 
     pkl_model, pkl_scalers = mm.picklify()
   
