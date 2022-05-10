@@ -16,6 +16,10 @@
  */
 /*     brand Colors              */
 /* navbar color */
+iframe{
+  z-index: -1000000 !important;
+}
+
 :root {
   --blue: #5e72e4;
   --indigo: #5603ad;
